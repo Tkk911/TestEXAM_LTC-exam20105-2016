@@ -1,0 +1,816 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ข้อสอบสอบวิชา 20105- 2011 เครื่องเสียง — Quiz with Admin</title>
+<style>
+  :root{--bg:#f6f7fb;--card:#fff;--accent:#276ef1;--muted:#666;}
+  html,body{height:100%;margin:0;font-family:"Noto Sans Thai","Sarabun",Arial,sans-serif;background:var(--bg);color:#222}
+  .wrap{max-width:920px;margin:28px auto;padding:20px}
+  .card{background:var(--card);border-radius:12px;box-shadow:0 8px 28px rgba(20,30,60,0.08);padding:20px}
+  h1{margin:0 0 10px;font-size:20px}
+  .meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  input[type=text],select,textarea{width:100%;padding:8px;border-radius:8px;border:1px solid #ddd;font-size:15px}
+  .row{display:flex;gap:12px}
+  .col{flex:1}
+  .center{text-align:center}
+  .timer{font-weight:700;color:#fff;background:var(--accent);padding:8px 12px;border-radius:10px}
+  .controls{display:flex;gap:10px;align-items:center;margin-top:12px}
+  button{background:var(--accent);color:#fff;border:0;padding:8px 14px;border-radius:8px;cursor:pointer}
+  button[disabled]{opacity:.45;cursor:not-allowed}
+  .question-number{font-size:13px;color:var(--muted)}
+  .options{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+  .option{padding:10px;border-radius:8px;border:1px solid #eee;cursor:pointer}
+  .option input{margin-right:10px}
+  .nav{display:flex;justify-content:space-between;margin-top:18px}
+  .summary{margin-top:12px}
+  .hidden{display:none}
+  .small{font-size:13px;color:var(--muted)}
+  .admin{margin-top:18px;border-top:1px dashed #eee;padding-top:14px}
+  pre{background:#fafafa;padding:12px;border-radius:8px;overflow:auto}
+  .img-preview{max-width:300px;border-radius:8px}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  footer.small{margin-top:18px;color:var(--muted);text-align:center}
+</style>
+</head>
+<body>
+
+<h2>วันที่สอบและเวลาปัจจุบัน</h2>
+<p id="currentDateTime"></p>
+    <script>
+        const now = new Date();
+        document.getElementById('currentDateTime').textContent = 
+            'เมื่อสอบเสร็จพิมพ์ผลสอบเป็น .PDF ไฟล์ ส่งไฟล์ทางไลน์ให้อาจารย์ประจำรายวิชา วันที่สอบและเวลาส่งคะแนน ' + now.toLocaleString('th-TH');
+</script>
+
+<div class="wrap card" id="app">
+  <div class="topbar">
+    <div style="text-align:center;">      
+      <img src="logoLTC.png" alt="วิทยาลัย" width="86" height="80">
+      <h2>วิทยาลัยเทคโนโลยีแหลมทอง</h2>      
+      <h1> ข้อสอบปลายภาคเรียน&emsp;  ภาคเรียนที่  1&emsp;  ปีการศึกษา  2568 </h1>
+      <h1> วิชา เครื่องรับโทรทัศน์ระบบดิจิทัล&emsp;   รหัสวิชา      20105-2016&emsp; ชั้น  ปวช. 2 อิเล็กทรอนิกส์ </h1>      
+      <h1> อาจารย์ผู้ออกข้อสอบ&emsp;  อ.ธีระ  กลมเกลา</h1>
+      <div class="miduim">เวลาสอบ 40 นาที — แสดงคำถามทีละข้อ — จำนวน 40 ข้อ   คะแนนเต็ม (40 คะแนน)</div>
+    </div>
+    <div><div class="timer" id="timer">40:00</div></div>
+  </div>
+
+  <!-- Start / Registration -->
+  <div id="register" class="card" >
+    <div style="display:grid;gap:20px">
+      <label>รหัสนักศึกษา หรือ รหัสประชาชน (ถ้ามี)</label>
+      <input type="text" id="stuId" placeholder="เช่น 123456">
+      <div class="row">
+        <div class="col">
+          <label>ชื่อ - สกุล *</label>
+          <input type="text" id="fullname" placeholder="เช่น สมชาย ใจดี">
+        </div>
+        <div class="col">
+          <label>สาขา *</label>
+          <input type="text" id="major" placeholder="เช่น ช่างอิเล็กทรอนิกส์">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <label class="small" style="margin:0">จำนวนข้อสอบ:</label>
+        <div id="totalCount" class="small">--</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <button id="startBtn">เริ่มทำข้อสอบ</button>
+        <!-- ปุ่ม Admin Login -->
+        <button id="adminLoginBtn" style="background:#e67e22">Admin Login</button>
+      </div>
+      <div class="miduim">ผู้สอบต้องตอบทุกข้อจึงจะส่งได้</div>
+    </div>
+  </div>
+
+  <!-- Quiz Area -->
+  <div id="quizArea" class="hidden">
+    <div class="question-header">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <h1 class="question-number" id="qNumber">ข้อที่ 1 / 40</h1>
+          <h2 id="qText" style="margin:6px 0">คำถาม...</h2>
+        </div>
+        <div style="text-align:right">
+          <div class="small">ผู้เข้าสอบ</div>
+          <div id="infoName" style="font-weight:700"></div>
+          <div class="small" id="infoMajor"></div>
+        </div>
+      </div>
+    </div>
+    <div id="qImageArea" style="margin-top:10px"></div>
+    <div class="options" id="optionsArea"></div>
+    <div class="nav">
+      <div>
+        <button id="prevBtn">ก่อนหน้า</button>
+        <button id="nextBtn">ถัดไป</button>
+      </div>
+      <div>
+        <button id="finishBtn" disabled>ส่งข้อสอบ</button>
+      </div>
+    </div>
+    <div class="miduim" style="margin-top:8px">เวลาที่เหลือ: <span id="timeLeft" style="font-weight:700"></span></div>
+  </div>
+
+  <!-- Result -->
+  <div id="resultArea" class="hidden card">
+    <h2>ผลการสอบ</h2>
+    <div id="resultSummary"></div>
+    <div style="margin-top:12px">
+      <button id="printBtn">พิมพ์เป็น PDF</button>
+      <button id="restartBtn" style="background:#777">เริ่มใหม่</button>
+    </div>
+  </div>
+
+  <!-- Admin / Editor -->
+  <div id="editorArea" class="hidden card admin">
+    <h3>Editor — แก้ไขแบบทดสอบ (สำหรับผู้ดูแล)</h3>
+    <div class="small">ใส่/แก้ไขคำถาม ตัวเลือก คำตอบที่ถูกต้อง และเพิ่มรูปภาพได้</div>
+    <div style="margin-top:10px">
+      <label>JSON ข้อสอบ</label>
+      <textarea id="questionJson" style="height:220px;font-family:monospace;"></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button id="saveQuestionsBtn" style="background:#2a9d8f">บันทึก</button>
+        <button id="addQBtn" style="background:#4a90e2">เพิ่มข้อ</button>
+        <button id="exportBtn" style="background:#444">ดาวน์โหลด JSON</button>
+        <button id="importBtn" style="background:#666">อัปโหลด JSON</button>
+        <input id="fileIn" type="file" accept="application/json" class="hidden">
+      </div>
+      <div style="margin-top:10px">
+        <label>เพิ่มรูปให้ข้อแรก (ตัวอย่าง)</label>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+          <input type="file" id="imgFile" accept="image/*">
+          <button id="attachImgBtn">เพิ่มรูปให้ข้อแรก</button>
+        </div>
+        <div id="imgPreviewWrap" style="margin-top:8px"></div>
+      </div>
+      <!-- ปุ่มกลับ -->
+      <button id="backToStartBtn" style="background:#777;margin-top:12px">กลับหน้าเริ่มต้น</button>
+    </div>
+  </div>
+
+  <footer class="small">ไฟล์ HTML พร้อมโหมด Admin — ผู้พัฒนาติดต่อ klomklaotkk911@gmail.com</footer>
+</div>
+
+<script>
+/* === ตั้งค่ารหัสผ่าน Admin === */
+const ADMIN_PASS = "quiz1234";
+/* === JSON ฐานข้อมูลข้อสอบ === */
+const DEFAULT_QUESTIONS = [
+ {
+    id: 1,
+    text: "เสียงทุ้มและเสียงแหลมแตกต่างกันที่ใด *",
+    options: [
+      "ความเร็วคลื่น",
+      "ความถี่คลื่น",
+      "ความยาวคลื่น",
+      "ความแรงคลื่น"
+    ],
+    correct: 2,
+    img: ""
+  },
+  {
+    id: 2,
+    text: "เสียงเดินทางไปในตัวกลางใดได้เร็วที่สุด *",
+    options: [
+      "น้ำ",
+      "ไม้",
+      "เหล็ก",
+      "อากาศ"
+    ],
+    correct: 3,
+    img: ""
+  },
+  {
+    id: 3,
+    text: "คลื่นเสียงมีความถี่เหมือนกัน 2 สัญญาณถูกผสมกัน เฟสการผสมสัญญาณข้อใดทำให้คลื่นออกมาแรงที่สุด *",
+    options: [
+      "เฟสเหมือนกัน",
+      "เฟสตรงข้ามกัน",
+      "เลื่อนเฟส 90 องศา",
+      "เลื่อนเฟส 180 องศา"
+    ],
+    correct: 1,
+    img: ""
+  },
+  {
+    id: 4,
+    text: "เยื่อแก้วหูของมนุษย์มีหน้าที่อะไร *",
+    options: [
+      "ป้องกันอันตรายจากการกระทบกระเทือนจากภายนอก",
+      "เกิดการสั่นเมื่อมีเสียงผ่านเข้ามา",
+      "ลดความดังของเสียง",
+      "ปรับความดันในช่องหูให้เหมาะสมกับอากาศภายนอก"
+    ],
+    correct: 2,
+    img: ""
+  },
+  {
+    id: 5,
+    text: "แรงกดดันของเสียงในอากาศต่ำสุดที่มนุษย์สามารถได้ยินมีค่าเท่าไร *",
+    options: [
+      "0.0002 N/m²",
+      "0.00002 N/m²",
+      "0.000002 N/m²",
+      "0.00000000002 N/m²"
+    ],
+    correct: 1,
+    img: ""
+  },
+  {
+    id: 6,
+    text: "เครื่องเสียงต่อไปนี้ เครื่องเสียงใดเป็นชนิดไฮ-ไฟ *",
+    options: [
+      "เครื่องรับวิทยุ AM",
+      "เครื่องรับส่งวิทยุสื่อสาร",
+      "เครื่องเล่นแผ่นเสียง",
+      "เครื่องขยายเสียงที่ใช้โฆษณา"
+    ],
+    correct: 3,
+    img: ""
+  },
+  {
+    id: 7,
+    text: "อิมพีแดนซ์ที่เหมาะสมมีผลต่อการต่อระบบเสียงไฮ-ไฟอย่างไร *",
+    options: [
+      "สัญญาณเสียงที่ได้จะแรงขึ้น",
+      "ทำให้เครื่องเสียงกำลังวัตต์มากขึ้น",
+      "สัญญาณที่ส่งผ่านไม่มีความผิดเพี้ยน",
+      "ประหยัดค่าใช้จ่ายในการต่อระบบเสียง"
+    ],
+    correct: 3,
+    img: ""
+  },
+  {
+    id: 8,
+    text: "เสียงรบกวนที่เรียกว่า ฮีส นอยส์ มีความถี่ประมาณเท่าใด *",
+    options: [
+      "8 kHz",
+      "10 kHz",
+      "15 kHz",
+      "20 kHz"
+    ],
+    correct: 1,
+    img: ""
+  },
+  {
+    id: 9,
+    text: "Signal To Noise Ratio หรือ S/N คือ *",
+    options: [
+      "อัตราส่วนของสัญญาณเสียงต่อสัญญาณรบกวน",
+      "อัตราส่วนของสัญญาณรบกวนต่อสัญญาณเสียง",
+      "อัตราส่วนของสัญญาณอินพุตต่อสัญญาณเอาต์พุต",
+      "อัตราความผิดเพี้ยนที่เกิดขึ้นในเครื่องเสียงระบบไฮ-ไฟ"
+    ],
+    correct: 1,
+    img: ""
+  },
+  {
+    id: 10,
+    text: "ความถี่ฮาโมนิกที่เกิดขึ้นในเครื่องขยายเสียงจะเกิดผลอย่างไร *",
+    options: [
+      "เครื่องขยายเสียงขยายสัญญาณออกมามีความผิดเพี้ยน",
+      "มีเสียงรบกวนที่ไม่ต้องการดังแทรกขึ้นมาตลอดเวลา",
+      "สร้างความเสียหายให้กับเครื่องขยายเสียงและลำโพง",
+      "ถูกทุกข้อ"
+    ],
+    correct: 4,
+    img: ""
+  },
+  {
+    id: 11,
+    text: "ฟลัตเทอร์และวาวจะเกิดขึ้นเพราะเหตุใด *",
+    options: [
+      "ความเร็วในการเคลื่อนที่ของเครื่องเล่นเทปไม่คงที่",
+      "อัตราการขยายเสียงของเครื่องขยายเสียงไม่คงที่",
+      "การเชื่อมต่อระหว่างอุปกรณ์ของเครื่องขยายเสียงไม่คงที่",
+      "มีการปรับเร่งความดังของเครื่องขยายเสียงมากเกินไป"
+    ],
+    correct: 1,
+    img: ""
+  },
+  {
+    id: 12,
+    text: "เสียงฟลัตเทอร์และวาวที่เกิดขึ้นควรมีค่าเท่าไรถึงจะดี *",
+    options: [
+      "0.02 – 0.07 %",
+      "0.05 – 0.2 %",
+      "0.1 – 0.5 %",
+      "0.4 – 0.5 %"
+    ],
+    correct: 1,
+    img: ""
+  },
+  {
+    id: 13,
+    text: "เครื่องเสียงคุณภาพดีควรมี Signal To Noise Ratio หรือ S/N เท่าใด *",
+    options: [
+      "30 ถึง 40 เดซิเบล",
+      "40 ถึง 50 เดซิเบล",
+      "50 ถึง 60 เดซิเบล",
+      "55 ถึง 65 เดซิเบล"
+    ],
+    correct: 3,
+    img: ""
+  },
+  {
+    id: 14,
+    text: "สัญญาณเสียงป็อปน้อยส์เกิดขึ้นจากสาเหตุใด *",
+    options: [
+      "ป้อนสัญญาณเสียงที่แรงเกินไปเข้าไปในเครื่องขยายเสียง",
+      "เร่งความดังของเครื่องขยายเสียงมากเกินไป",
+      "การเปิด-ปิดสวิตช์เครื่องขยายเสียง",
+      "การปรับเร่งความดังของเครื่องขยายเสียง"
+    ],
+    correct: 3,
+    img: ""
+  },
+  {
+    id: 15,
+    text: "อุปกรณ์ที่ป้องกันสัญญาณเสียงป็อปน้อยส์ที่ประกอบจากตัวต้านทานและตัวเก็บประจุชื่อเรียกว่าอะไร *",
+    options: [
+      "แอตทินูเอเตอร์",
+      "สปาร์คคลีนเนอร์",
+      "สปาร์คคิลเลอร์",
+      "คอนโทรลคิลเลอร์"
+    ],
+    correct: 3,
+    img: ""
+  },
+  {
+    id: 16,
+    text: "จูนเนอร์ที่ใช้ประกอบในระบบเสียงนั้นจะไม่มีการรับสถานี ย่านใด *",
+    options: [
+      "SW",
+      "AM",
+      "FM",
+      "FM STEREO"
+    ],
+    correct: 1,
+    img: ""
+  },
+  {
+    id: 17,
+    text: "สัญญาณที่ส่งออกมาจากภาคฟร้อนเอนด์จะเป็นสัญญาณอะไร *",
+    options: [
+      "IF",
+      "AF",
+      "RF",
+      "AC"
+    ],
+    correct: 1,
+    img: ""
+  },
+  {
+    id: 18,
+    text: "แผ่นซีดีมีรัศมียาวเท่าไหร่ *",
+    options: [
+      "12 ซม.",
+      "10 ซม.",
+      "6 ซม.",
+      "4 ซม."
+    ],
+    correct: 1,
+    img: ""
+  },
+  {
+    id: 19,
+    text: "เหตุผลใดที่ไม่ใช่ข้อดีของเทปโอเพ่นรีลที่ดีกว่าเทปคาสเซ็ท *",
+    options: [
+      "เก็บสัญญาณเสียงได้แรงมากกว่า",
+      "เก็บสัญญาณความถี่สูงได้สูงกว่า",
+      "บันทึกเพลงและทำรายการ",
+      "ใช้ได้กับงานทั่วไป"
+    ],
+    correct: 4,
+    img: ""
+  },
+  {
+    id: 20,
+    text: "ความเร็วในการเคลื่อนที่ของเทปคาสเซ็ท ข้อไหนถูกต้อง *",
+    options: [
+      "2.4 ซม./วินาที",
+      "4.8 ซม./วินาที",
+      "9.5 ซม./วินาที",
+      "24 ซม./วินาที"
+    ],
+    correct: 2,
+    img: ""
+  },
+  {
+    id: 21,
+    text: "ข้อไหนไม่ใช่วัสดุจำพวกสารเฟอร์โรแมกเนติก *",
+    options: [
+      "ฟอสเฟอร์",
+      "โคบอลท์",
+      "เฟอร์ไรท์",
+      "แอลนิโก"
+    ],
+    correct: 1,
+    img: ""
+  },
+  {
+    id: 22,
+    text: "ข้อใดไม่ใช่คุณสมบัติของเครื่องเล่นคอมแพ็กดิสก์ *",
+    options: [
+      "สัญญาณเก็บไว้ในรูปสัญญาณดิจิทัล",
+      "สัญญาณถูกบันทึกลงบนแผ่นเป็นหลุมเล็ก ๆ",
+      "รหัสที่ใช้เป็นเลขฐานสอง",
+      "ขณะเล่นหัวอ่านจะสัมผัสกับแผ่นคอมแพ็กดิสก์"
+    ],
+    correct: 4,
+    img: ""
+  },
+  {
+    id: 23,
+    text: "ข้อใดไม่ใช่ส่วนประกอบของภาคปรีโทนแอมป์ *",
+    options: [
+      "โวลลุ่ม",
+      "ไดเวอร์",
+      "ลาวด์เนส",
+      "โทนคอนโทรล"
+    ],
+    correct: 2,
+    img: ""
+  },
+  {
+    id: 24,
+    text: "ปุ่มปรับเสียงทุ้ม เสียงกลาง และเสียงแหลม จะอยู่ส่วนไหนของวงจร *",
+    options: [
+      "โวลลุ่ม",
+      "ปรีแอมป์",
+      "ลาวด์เนส",
+      "โทนคอนโทรล"
+    ],
+    correct: 4,
+    img: ""
+  },
+  {
+    id: 25,
+    text: "ย่านการปรับเสียงของกราฟฟิกอีควอไลเซอร์อย่างน้อยมีกี่ย่าน *",
+    options: [
+      "5",
+      "6",
+      "7",
+      "8"
+    ],
+    correct: 1,
+    img: ""
+  },
+  {
+    id: 26,
+    text: "เครื่องขยายเสียงที่นิยมใช้มากที่สุดคือเครื่องขยายเสียงแบบใด *",
+    options: [
+      "ทรานซิสเตอร์",
+      "มอสเฟต",
+      "ไอซี",
+      "โทนคอนโทรล"
+    ],
+    correct: 1,
+    img: ""
+  },
+  {
+    id: 27,
+    text: "เครื่องขยายเสียงที่ให้ประสิทธิภาพของวงจรขยายสูงที่สุดคือเครื่องขยายเสียงแบบใด *",
+    options: [
+      "ทรานซิสเตอร์",
+      "มอสเฟต",
+      "ไอซี",
+      "โทนคอนโทรล"
+    ],
+    correct: 2,
+    img: ""
+  },
+  {
+    id: 28,
+    text: "การปรับความดังของความถี่เสียงให้เพิ่มมากขึ้นเรียกว่าอะไร *",
+    options: [
+      "ไฮเออร์",
+      "เพาเวอร์",
+      "บูสต์",
+      "คัต"
+    ],
+    correct: 3,
+    img: ""
+  },
+  {
+    id: 29,
+    text: "การบันทึกข้อมูลลงในระบบเสียงดิจิทัล รหัสที่บันทึกลงจะเป็นเลขฐานใด *",
+    options: [
+      "2",
+      "8",
+      "10",
+      "16"
+    ],
+    correct: 1,
+    img: ""
+  },
+  {
+    id: 30,
+    text: "การแบ่งความถี่เสียงออกเป็นลำดับของกราฟฟิกอีควอไลเซอร์นั้นแต่ละช่วงความถี่เรียกว่าอะไร *",
+    options: [
+      "กราฟฟิก",
+      "บูสต์",
+      "ออคเตฟ",
+      "คัต"
+    ],
+    correct: 3,
+    img: ""
+  },
+  {
+    id: 31,
+    text: "ข้อใดคือคุณสมบัติของวงจรเบสร่วม *",
+    options: [
+      "อินพุตอิมพีแดนซ์สูง",
+      "เอาต์พุตอิมพีแดนซ์ต่ำ",
+      "อัตราขยายกระแสสูง",
+      "อัตราขยายแรงดันสูง"
+    ],
+    correct: 4,
+    img: ""
+  },
+  {
+    id: 32,
+    text: "ข้อใดคือคุณสมบัติของวงจรคอลเลคเตอร์ร่วม *",
+    options: [
+      "อินพุตอิมพีแดนซ์ต่ำ",
+      "เอาต์พุตอิมพีแดนซ์สูง",
+      "อัตราขยายกระแสสูง",
+      "อัตราขยายแรงดันสูง"
+    ],
+    correct: 3,
+    img: ""
+  },
+  {
+    id: 33,
+    text: "ข้อใดคือคุณสมบัติของวงจรอิมิทเตอร์ร่วม *",
+    options: [
+      "อินพุตอิมพีแดนซ์สูง",
+      "เอาต์พุตอิมพีแดนซ์สูง",
+      "อัตราขยายกระแสต่ำ",
+      "อัตราขยายแรงดันต่ำ"
+    ],
+    correct: 1,
+    img: ""
+  },
+  {
+    id: 34,
+    text: "วงจรร่วมแบบใดคือวงจรร่วมที่นิยมใช้งานมากที่สุด *",
+    options: [
+      "วงจรเบสร่วม",
+      "วงจรอิมิทเตอร์ร่วม",
+      "วงจรคอลเลคเตอร์ร่วม",
+      "วงจรอิมิทเตอร์ฟอลโลเวอร์"
+    ],
+    correct: 2,
+    img: ""
+  },
+  {
+    id: 35,
+    text: "วงจรไบอัสที่นิยมใช้งานมากที่สุดคือวงจรอะไร *",
+    options: [
+      "วงจรฟิกซ์ไบอัส",
+      "วงจรเซลฟ์ไบอัส",
+      "วงจรสเตบิไลซ์ไบอัส",
+      "วงจรมิกซ์ไบอัส"
+    ],
+    correct: 2,
+    img: ""
+  },
+  {
+    id: 36,
+    text: "การไบอัสทรานซิสเตอร์แบบใดที่ให้ความคงทนต่ออุณหภูมิที่ดีที่สุด *",
+    options: [
+      "วงจรฟิกซ์ไบอัส",
+      "วงจรเซลฟ์ไบอัส",
+      "วงจรสเตบิไลซ์ไบอัส",
+      "วงจรมิกซ์ไบอัส"
+    ],
+    correct: 3,
+    img: ""
+  },
+  {
+    id: 37,
+    text: "วงจรไบอัสที่ประหยัดและให้ความผิดเพี้ยนต่ำคือวงจรใด *",
+    options: [
+      "วงจรฟิกซ์ไบอัส",
+      "วงจรเซลฟ์ไบอัส",
+      "วงจรสเตบิไลซ์ไบอัส",
+      "วงจรมิกซ์ไบอัส"
+    ],
+    correct: 2,
+    img: ""
+  },
+  {
+    id: 38,
+    text: "ข้อใดคือการจ่ายไบอัสให้เจ-เฟตที่ถูกต้อง *",
+    options: [
+      "ไบอัสตรงที่ขา G และขา S ไบอัสกลับที่ขา D",
+      "ไบอัสตรงที่ขา G และขา D ไบอัสกลับที่ขา S",
+      "ไบอัสตรงที่ขา D ไบอัสกลับที่ขา G และขา S",
+      "ไบอัสตรงที่ขา S ไบอัสกลับที่ขา G และขา D"
+    ],
+    correct: 2,
+    img: ""
+  },
+  {
+    id: 39,
+    text: "ข้อใดคือการจ่ายไบอัสให้ดีพีลชันมอสเฟตที่ถูกต้อง *",
+    options: [
+      "ไบอัสตรงที่ขา G และขา S ไบอัสกลับที่ขา D",
+      "ไบอัสตรงที่ขา G และขา D ไบอัสกลับที่ขา S",
+      "ไบอัสตรงที่ขา D ไบอัสกลับที่ขา G และขา S",
+      "ไบอัสตรงที่ขา S ไบอัสกลับที่ขา G และขา D"
+    ],
+    correct: 3,
+    img: ""
+  },
+  {
+    id: 40,
+    text: "ข้อใดคือการจ่ายไบอัสให้อีแนนซ์เมนต์มอสเฟตที่ถูกต้อง *",
+    options: [
+      "ไบอัสตรงที่ขา G และขา S ไบอัสกลับที่ขา D",
+      "ไบอัสตรงที่ขา G และขา D ไบอัสกลับที่ขา S",
+      "ไบอัสตรงที่ขา D ไบอัสกลับที่ขา G และขา S",
+      "ไบอัสตรงที่ขา S ไบอัสกลับที่ขา G และขา D"
+    ],
+    correct: 4,
+    img: ""
+  }
+
+];
+
+/* ==== ฟังก์ชันและตัวแปรหลัก ==== */
+function loadQuestions(){
+  const raw=localStorage.getItem('quiz_questions');
+  if(raw){try{const q=JSON.parse(raw);if(Array.isArray(q)&&q.length>0)return q;}catch(e){}}
+  return DEFAULT_QUESTIONS;
+}
+function saveQuestionsToStorage(q){localStorage.setItem('quiz_questions',JSON.stringify(q));}
+
+let questions=loadQuestions();
+let currentIndex=0,timerSeconds=40*60,timerInterval=null,answers=[],meta={fullname:'',major:'',stuId:''};
+
+const totalCountDisplay=document.getElementById('totalCount');
+const startBtn=document.getElementById('startBtn');
+const adminLoginBtn=document.getElementById('adminLoginBtn');
+const registerDiv=document.getElementById('register');
+const quizArea=document.getElementById('quizArea');
+const qNumber=document.getElementById('qNumber');
+const qText=document.getElementById('qText');
+const optionsArea=document.getElementById('optionsArea');
+const prevBtn=document.getElementById('prevBtn');
+const nextBtn=document.getElementById('nextBtn');
+const finishBtn=document.getElementById('finishBtn');
+const timerEl=document.getElementById('timer');
+const timeLeftEl=document.getElementById('timeLeft');
+const infoName=document.getElementById('infoName');
+const infoMajor=document.getElementById('infoMajor');
+const resultArea=document.getElementById('resultArea');
+const resultSummary=document.getElementById('resultSummary');
+const printBtn=document.getElementById('printBtn');
+const restartBtn=document.getElementById('restartBtn');
+const fullnameInput=document.getElementById('fullname');
+const majorInput=document.getElementById('major');
+const stuIdInput=document.getElementById('stuId');
+const editorArea=document.getElementById('editorArea');
+const questionJsonTextarea=document.getElementById('questionJson');
+const saveQuestionsBtn=document.getElementById('saveQuestionsBtn');
+const addQBtn=document.getElementById('addQBtn');
+const exportBtn=document.getElementById('exportBtn');
+const importBtn=document.getElementById('importBtn');
+const fileIn=document.getElementById('fileIn');
+const imgFile=document.getElementById('imgFile');
+const attachImgBtn=document.getElementById('attachImgBtn');
+const imgPreviewWrap=document.getElementById('imgPreviewWrap');
+const backToStartBtn=document.getElementById('backToStartBtn');
+
+function fmtTime(s){const m=Math.floor(s/60),sec=s%60;return String(m).padStart(2,'0')+":"+String(sec).padStart(2,'0');}
+function refreshTotals(){totalCountDisplay.textContent=questions.length+" ข้อ";}
+refreshTotals();
+questionJsonTextarea.value=JSON.stringify(questions,null,2);
+
+/* ==== โหมดผู้สอบ ==== */
+startBtn.addEventListener('click',()=>{
+  const name=fullnameInput.value.trim(),major=majorInput.value.trim(),id=stuIdInput.value.trim();
+  if(!name||!major){alert('กรุณากรอก ชื่อ-สกุล และ สาขา');return;}
+  meta={fullname:name,major:major,stuId:id};
+  infoName.textContent=name; infoMajor.textContent=major;
+  registerDiv.classList.add('hidden'); quizArea.classList.remove('hidden');
+  answers=new Array(questions.length).fill(null); currentIndex=0;
+  renderQuestion();
+  timerSeconds=40*60; timerEl.textContent=fmtTime(timerSeconds); timeLeftEl.textContent=fmtTime(timerSeconds);
+  if(timerInterval)clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{
+    timerSeconds--; timerEl.textContent=fmtTime(timerSeconds); timeLeftEl.textContent=fmtTime(timerSeconds);
+    if(timerSeconds<=0){clearInterval(timerInterval);alert('หมดเวลา ส่งข้อสอบอัตโนมัติ');submitQuiz();}
+  },1000);
+});
+
+function renderQuestion(){
+  const q=questions[currentIndex];
+  qNumber.textContent=`ข้อที่ ${currentIndex+1} / ${questions.length}`;
+  qText.textContent=q.text;
+  const qImageArea=document.getElementById('qImageArea');
+  qImageArea.innerHTML=''; if(q.img){const img=document.createElement('img');img.src=q.img;img.className='img-preview';qImageArea.appendChild(img);}
+  optionsArea.innerHTML='';
+  q.options.forEach((opt,idx)=>{
+    const div=document.createElement('label');div.className='option';
+    const radio=document.createElement('input');radio.type='radio';radio.name='option';radio.value=idx;
+    if(answers[currentIndex]===idx)radio.checked=true;
+    radio.addEventListener('change',()=>{answers[currentIndex]=idx;updateNavButtons();});
+    div.appendChild(radio);div.appendChild(document.createTextNode(opt));optionsArea.appendChild(div);
+  });
+  updateNavButtons();
+}
+function updateNavButtons(){
+  prevBtn.disabled=currentIndex===0;
+  nextBtn.disabled=currentIndex===questions.length-1;
+  finishBtn.disabled=!(currentIndex===questions.length-1 && answers.every(a=>a!==null));
+}
+prevBtn.onclick=()=>{if(currentIndex>0){currentIndex--;renderQuestion();}};
+nextBtn.onclick=()=>{if(answers[currentIndex]===null){alert('เลือกคำตอบก่อน');return;} if(currentIndex<questions.length-1){currentIndex++;renderQuestion();}};
+finishBtn.onclick=()=>{if(currentIndex!==questions.length-1||!answers.every(a=>a!==null)){alert('ตอบทุกข้อก่อนส่ง');return;} if(confirm('ต้องการส่งข้อสอบ?'))submitQuiz();};
+
+function submitQuiz(){
+  if(timerInterval)clearInterval(timerInterval);
+  let correctCount=0;const details=[];
+  questions.forEach((q,i)=>{
+    const chosen=answers[i],ok=(chosen +1 ===q.correct);
+    if(ok)correctCount++;
+    details.push({i:i+1,text:q.text,chosenText:q.options[chosen],correctText:q.options[q.correct-1],ok});
+  });
+  quizArea.classList.add('hidden'); resultArea.classList.remove('hidden');
+  let html=`<p>ชื่อ: <b>${meta.fullname}</b> | สาขา: <b>${meta.major}</b> | รหัส: ${meta.stuId||'-'}</p>`;
+  html+=`<p>คะแนน: <b>${correctCount}</b> / ${questions.length}</p><ol>`;
+  details.forEach(d=>{html+=`<li>${d.text}<div class="small">ตอบ: ${d.chosenText||'-'} ${d.ok?'✅':'❌'} | ถูก: ${d.correctText}</div></li>`});
+  html+='</ol>'; resultSummary.innerHTML=html;
+}
+printBtn.onclick=()=>window.print();
+restartBtn.onclick=()=>{if(confirm('เริ่มใหม่?'))location.reload();};
+
+/* ==== โหมด Admin ==== */
+adminLoginBtn.addEventListener('click',()=>{
+  const pw=prompt("กรอกรหัสผ่านผู้ดูแล:");  
+  if(pw===ADMIN_PASS){
+    registerDiv.classList.add('hidden');
+    editorArea.classList.remove('hidden');
+    questionJsonTextarea.value=JSON.stringify(questions,null,2);
+    showImgPreview(questions[0] && questions[0].img);
+  }else if(pw!==null){alert("รหัสผ่านไม่ถูกต้อง");}
+});
+backToStartBtn.onclick=()=>{editorArea.classList.add('hidden');registerDiv.classList.remove('hidden');};
+
+/* ==== Editor Functions ==== */
+function showImgPreview(dataUrl){
+  imgPreviewWrap.innerHTML=''; if(!dataUrl)return;
+  const img=document.createElement('img');img.src=dataUrl;img.style.maxWidth='220px';img.style.borderRadius='8px';
+  imgPreviewWrap.appendChild(img);
+}
+saveQuestionsBtn.onclick=()=>{
+  try{
+    const parsed=JSON.parse(questionJsonTextarea.value);
+    if(!Array.isArray(parsed))throw 'ต้องเป็น array';
+    questions=parsed; saveQuestionsToStorage(questions);
+    refreshTotals(); alert('บันทึกสำเร็จ');
+  }catch(e){alert('JSON ไม่ถูกต้อง: '+e);}
+};
+addQBtn.onclick=()=>{
+  questions.push({id:questions.length+1,text:'คำถามใหม่',options:['ตัวเลือก A','ตัวเลือก B'],correct:0,img:''});
+  questionJsonTextarea.value=JSON.stringify(questions,null,2);
+  saveQuestionsToStorage(questions); refreshTotals();
+};
+exportBtn.onclick=()=>{
+  const blob=new Blob([JSON.stringify(questions,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a');
+  a.href=url;a.download='quiz_questions.json';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+};
+importBtn.onclick=()=>fileIn.click();
+fileIn.onchange=(e)=>{
+  const f=e.target.files[0]; if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{const p=JSON.parse(r.result);if(!Array.isArray(p))throw 'ไม่ใช่ array';
+      questions=p; questionJsonTextarea.value=JSON.stringify(questions,null,2);
+      saveQuestionsToStorage(questions); refreshTotals(); alert('นำเข้าเรียบร้อย');
+    }catch(err){alert('ผิดพลาด: '+err);}
+  }; r.readAsText(f);
+};
+attachImgBtn.onclick=()=>{
+  const f=imgFile.files[0]; if(!f)return alert('เลือกไฟล์รูปก่อน');
+  const r=new FileReader();
+  r.onload=()=>{ if(questions.length===0)return alert('ไม่มีข้อสอบ');
+    questions[0].img=r.result;
+    questionJsonTextarea.value=JSON.stringify(questions,null,2);
+    saveQuestionsToStorage(questions); showImgPreview(r.result);
+    alert('เพิ่มรูปให้ข้อแรกแล้ว');
+  }; r.readAsDataURL(f);
+};
+document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+});
+</script>
+</body>
+</html>
